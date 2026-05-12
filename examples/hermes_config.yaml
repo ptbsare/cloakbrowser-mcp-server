@@ -1,0 +1,21 @@
+# Example: Hermes Agent configuration for CloakBrowser MCP Server
+# Add this to ~/.hermes/config.yaml
+
+mcp_servers:
+  cloakbrowser:
+    command: "python"
+    args: ["-m", "cloakbrowser_mcp.server"]
+    timeout: 120          # per-tool-call timeout in seconds
+    connect_timeout: 60   # initial connection timeout
+
+# After adding this config, restart Hermes Agent.
+# Tools will be registered as mcp_cloakbrowser_browser_*
+#
+# Example tool names:
+#   mcp_cloakbrowser_browser_launch
+#   mcp_cloakbrowser_browser_navigate
+#   mcp_cloakbrowser_browser_snapshot
+#   mcp_cloakbrowser_browser_click
+#   mcp_cloakbrowser_browser_type
+#   mcp_cloakbrowser_browser_screenshot
+#   ...
