@@ -1,7 +1,7 @@
 """CloakBrowser MCP Server - Main entry point.
 
 Stealth browser automation via MCP protocol, powered by CloakBrowser.
-Provides all browser tools: navigate, click, type, screenshot, console, etc.
+Provides all cloak tools: navigate, click, type, screenshot, console, etc.
 """
 
 import asyncio
@@ -40,11 +40,11 @@ def _image(data: str, format: str = "png") -> list[ImageContent]:
 
 @app.list_tools()
 async def list_tools() -> list[Tool]:
-    """List all available browser tools."""
+    """List all available cloak tools."""
     return [
         Tool(
-            name="browser_launch",
-            description="Launch a stealth CloakBrowser instance. Call this before any other browser tool.",
+            name="cloak_launch",
+            description="Launch a stealth CloakBrowser instance. Call this before any other cloak tool.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -61,12 +61,12 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_close",
+            name="cloak_close",
             description="Close the browser and clean up resources.",
             inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
-            name="browser_navigate",
+            name="cloak_navigate",
             description="Navigate to a URL and return a compact snapshot of the page.",
             inputSchema={
                 "type": "object",
@@ -77,7 +77,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_snapshot",
+            name="cloak_snapshot",
             description="Get a text-based snapshot of the current page's accessibility tree with ref IDs for interactive elements.",
             inputSchema={
                 "type": "object",
@@ -87,7 +87,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_click",
+            name="cloak_click",
             description="Click on an element identified by its ref ID from the snapshot (e.g. '@e5').",
             inputSchema={
                 "type": "object",
@@ -98,7 +98,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_type",
+            name="cloak_type",
             description="Type text into an input field identified by its ref ID.",
             inputSchema={
                 "type": "object",
@@ -111,7 +111,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_press",
+            name="cloak_press",
             description="Press a keyboard key (Enter, Tab, Escape, ArrowDown, etc.).",
             inputSchema={
                 "type": "object",
@@ -122,7 +122,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_scroll",
+            name="cloak_scroll",
             description="Scroll the page in a direction.",
             inputSchema={
                 "type": "object",
@@ -132,17 +132,17 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_back",
+            name="cloak_back",
             description="Navigate back in browser history.",
             inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
-            name="browser_forward",
+            name="cloak_forward",
             description="Navigate forward in browser history.",
             inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
-            name="browser_console",
+            name="cloak_console",
             description="Get browser console output or evaluate JavaScript expression.",
             inputSchema={
                 "type": "object",
@@ -153,12 +153,12 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_get_images",
+            name="cloak_get_images",
             description="Get a list of all images on the current page with URLs and alt text.",
             inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
-            name="browser_screenshot",
+            name="cloak_screenshot",
             description="Take a screenshot of the current page. Returns a PNG image.",
             inputSchema={
                 "type": "object",
@@ -169,7 +169,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_wait_for",
+            name="cloak_wait_for",
             description="Wait for an element or text to appear on the page.",
             inputSchema={
                 "type": "object",
@@ -181,7 +181,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_evaluate",
+            name="cloak_evaluate",
             description="Evaluate JavaScript expression in the page context.",
             inputSchema={
                 "type": "object",
@@ -192,7 +192,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_get_content",
+            name="cloak_get_content",
             description="Get text or HTML content of an element or the entire page.",
             inputSchema={
                 "type": "object",
@@ -204,12 +204,12 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_extract_links",
+            name="cloak_extract_links",
             description="Extract all links from the current page as JSON.",
             inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
-            name="browser_fill_form",
+            name="cloak_fill_form",
             description="Fill multiple form fields at once.",
             inputSchema={
                 "type": "object",
@@ -232,7 +232,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_hover",
+            name="cloak_hover",
             description="Hover over an element identified by its ref ID.",
             inputSchema={
                 "type": "object",
@@ -243,7 +243,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_select_option",
+            name="cloak_select_option",
             description="Select option(s) in a <select> element.",
             inputSchema={
                 "type": "object",
@@ -255,7 +255,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_drag",
+            name="cloak_drag",
             description="Drag an element from one position to another.",
             inputSchema={
                 "type": "object",
@@ -267,7 +267,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_save_storage_state",
+            name="cloak_save_storage_state",
             description="Save browser storage state (cookies, localStorage) to a JSON file.",
             inputSchema={
                 "type": "object",
@@ -278,7 +278,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_load_storage_state",
+            name="cloak_load_storage_state",
             description="Load browser storage state from a JSON file.",
             inputSchema={
                 "type": "object",
@@ -289,7 +289,7 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="browser_info",
+            name="cloak_info",
             description="Get information about the current browser session (URL, title, viewport).",
             inputSchema={"type": "object", "properties": {}},
         ),
@@ -300,78 +300,78 @@ async def list_tools() -> list[Tool]:
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent | ImageContent]:
     """Route tool calls to implementations."""
     try:
-        if name == "browser_launch":
+        if name == "cloak_launch":
             result = await tools.tool_launch(**arguments)
             return _text(result)
-        elif name == "browser_close":
+        elif name == "cloak_close":
             result = await tools.tool_close()
             return _text(result)
-        elif name == "browser_navigate":
+        elif name == "cloak_navigate":
             result = await tools.tool_navigate(**arguments)
             return _text(result)
-        elif name == "browser_snapshot":
+        elif name == "cloak_snapshot":
             result = await tools.tool_snapshot(**arguments)
             return _text(result)
-        elif name == "browser_click":
+        elif name == "cloak_click":
             result = await tools.tool_click(**arguments)
             return _text(result)
-        elif name == "browser_type":
+        elif name == "cloak_type":
             result = await tools.tool_type(**arguments)
             return _text(result)
-        elif name == "browser_press":
+        elif name == "cloak_press":
             result = await tools.tool_press(**arguments)
             return _text(result)
-        elif name == "browser_scroll":
+        elif name == "cloak_scroll":
             result = await tools.tool_scroll(**arguments)
             return _text(result)
-        elif name == "browser_back":
+        elif name == "cloak_back":
             result = await tools.tool_back()
             return _text(result)
-        elif name == "browser_forward":
+        elif name == "cloak_forward":
             result = await tools.tool_forward()
             return _text(result)
-        elif name == "browser_console":
+        elif name == "cloak_console":
             result = await tools.tool_console(**arguments)
             return _text(result)
-        elif name == "browser_get_images":
+        elif name == "cloak_get_images":
             result = await tools.tool_get_images()
             return _text(result)
-        elif name == "browser_screenshot":
+        elif name == "cloak_screenshot":
             result = await tools.tool_screenshot(**arguments)
             if "error" in result:
                 return _text(result["error"])
             return [ImageContent(type="image", data=result["data"], mimeType="image/png")]
-        elif name == "browser_wait_for":
+        elif name == "cloak_wait_for":
             result = await tools.tool_wait_for(**arguments)
             return _text(result)
-        elif name == "browser_evaluate":
+        elif name == "cloak_evaluate":
             result = await tools.tool_evaluate(**arguments)
             return _text(result)
-        elif name == "browser_get_content":
+        elif name == "cloak_get_content":
             result = await tools.tool_get_content(**arguments)
             return _text(result)
-        elif name == "browser_extract_links":
+        elif name == "cloak_extract_links":
             result = await tools.tool_extract_links()
             return _text(result)
-        elif name == "browser_fill_form":
+        elif name == "cloak_fill_form":
             result = await tools.tool_fill_form(**arguments)
             return _text(result)
-        elif name == "browser_hover":
+        elif name == "cloak_hover":
             result = await tools.tool_hover(**arguments)
             return _text(result)
-        elif name == "browser_select_option":
+        elif name == "cloak_select_option":
             result = await tools.tool_select_option(**arguments)
             return _text(result)
-        elif name == "browser_drag":
+        elif name == "cloak_drag":
             result = await tools.tool_drag(**arguments)
             return _text(result)
-        elif name == "browser_save_storage_state":
+        elif name == "cloak_save_storage_state":
             result = await tools.tool_save_storage_state(**arguments)
             return _text(result)
-        elif name == "browser_load_storage_state":
+        elif name == "cloak_load_storage_state":
             result = await tools.tool_load_storage_state(**arguments)
             return _text(result)
-        elif name == "browser_info":
+        elif name == "cloak_info":
             result = await tools.tool_info()
             return _text(result)
         else:

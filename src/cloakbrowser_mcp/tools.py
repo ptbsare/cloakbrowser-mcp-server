@@ -89,7 +89,7 @@ async def tool_snapshot(full: bool = False) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
     return await _get_snapshot(mgr, full=full)
 
 
@@ -121,7 +121,7 @@ async def _get_snapshot(mgr, full: bool = False) -> str:
                 const type = el.type || '';
                 const ref = `@e${idx}`;
 
-                el.setAttribute('data-mcp-ref', ref);
+                el.setAttribute('data-cloak-ref', ref);
 
                 results.push({
                     ref, tag, text, value, placeholder, href, role, ariaLabel, type,
@@ -210,7 +210,7 @@ async def tool_click(ref: str) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         element = await _find_element(mgr, ref)
@@ -234,7 +234,7 @@ async def tool_type(ref: str, text: str, submit: bool = False) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         element = await _find_element(mgr, ref)
@@ -260,7 +260,7 @@ async def tool_press(key: str) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         await mgr.page.keyboard.press(key)
@@ -279,7 +279,7 @@ async def tool_scroll(direction: str = "down") -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         delta = 500 if direction == "down" else -500
@@ -295,7 +295,7 @@ async def tool_back() -> str:
     """Navigate back in browser history."""
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         await mgr.page.go_back(timeout=10000)
@@ -309,7 +309,7 @@ async def tool_forward() -> str:
     """Navigate forward in browser history."""
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         await mgr.page.go_forward(timeout=10000)
@@ -328,7 +328,7 @@ async def tool_console(clear: bool = False, expression: Optional[str] = None) ->
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         if expression:
@@ -352,7 +352,7 @@ async def tool_get_images() -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         images = await mgr.page.evaluate("""() => {
@@ -381,14 +381,14 @@ async def tool_screenshot(
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return {"error": "No browser running. Call browser_launch first."}
+        return {"error": "No browser running. Call cloak_launch first."}
 
     try:
         if annotate:
             # Add numbered labels to interactive elements
             await mgr.page.evaluate("""() => {
-                document.querySelectorAll('[data-mcp-ref]').forEach(el => {
-                    const ref = el.getAttribute('data-mcp-ref');
+                document.querySelectorAll('[data-cloak-ref]').forEach(el => {
+                    const ref = el.getAttribute('data-cloak-ref');
                     const num = ref.replace('@e', '');
                     const rect = el.getBoundingClientRect();
                     const label = document.createElement('div');
@@ -443,7 +443,7 @@ async def tool_wait_for(
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         if selector:
@@ -469,7 +469,7 @@ async def tool_evaluate(expression: str) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         result = await mgr.page.evaluate(expression)
@@ -494,7 +494,7 @@ async def tool_get_content(
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         element = await mgr.page.query_selector(selector)
@@ -519,7 +519,7 @@ async def tool_extract_links() -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         links = await mgr.page.evaluate("""() => {
@@ -527,7 +527,7 @@ async def tool_extract_links() -> str:
             return Array.from(anchors).map(a => ({
                 text: (a.textContent || '').trim().substring(0, 200),
                 href: a.href,
-                ref: a.getAttribute('data-mcp-ref') || '',
+                ref: a.getAttribute('data-cloak-ref') || '',
             })).filter(l => l.href && !l.href.startsWith('javascript:'));
         }""")
         return json.dumps(links, ensure_ascii=False, indent=2)
@@ -547,7 +547,7 @@ async def tool_fill_form(
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     results = []
     for field in fields:
@@ -586,7 +586,7 @@ async def tool_hover(ref: str) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         element = await _find_element(mgr, ref)
@@ -609,7 +609,7 @@ async def tool_select_option(ref: str, values: list[str]) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         element = await _find_element(mgr, ref)
@@ -631,7 +631,7 @@ async def tool_drag(ref_from: str, ref_to: str) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         src = await _find_element(mgr, ref_from)
@@ -655,7 +655,7 @@ async def tool_save_storage_state(path: str) -> str:
     """
     mgr = get_manager()
     if not mgr.is_running:
-        return "Error: No browser running. Call browser_launch first."
+        return "Error: No browser running. Call cloak_launch first."
 
     try:
         await mgr.context.storage_state(path=path)
@@ -703,6 +703,6 @@ async def tool_info() -> str:
 
 
 async def _find_element(mgr, ref: str):
-    """Find an element by its data-mcp-ref attribute."""
-    selector = f'[data-mcp-ref="{ref}"]'
+    """Find an element by its data-cloak-ref attribute."""
+    selector = f'[data-cloak-ref="{ref}"]'
     return await mgr.page.query_selector(selector)
