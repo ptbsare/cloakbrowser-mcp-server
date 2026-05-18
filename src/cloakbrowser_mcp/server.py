@@ -44,19 +44,19 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="cloak_launch",
-            description="Launch a stealth CloakBrowser instance. Call this before any other cloak tool.",
+            description="Launch a stealth CloakBrowser instance. Stealth features ON by default (headed, humanize, geoip). Pass headless=True for server use.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "headless": {"type": "boolean", "default": True, "description": "Run in headless mode."},
+                    "headless": {"type": "boolean", "default": False, "description": "Run headless. Default False (headed) for best stealth."},
                     "proxy": {"type": "string", "description": "Proxy URL (http/socks5)."},
-                    "humanize": {"type": "boolean", "default": False, "description": "Enable human-like mouse/keyboard behavior."},
+                    "humanize": {"type": "boolean", "default": True, "description": "Human-like mouse/keyboard. Default True."},
                     "user_agent": {"type": "string", "description": "Custom User-Agent string."},
                     "viewport_width": {"type": "integer", "default": 1280, "description": "Viewport width in pixels."},
                     "viewport_height": {"type": "integer", "default": 720, "description": "Viewport height in pixels."},
                     "locale": {"type": "string", "description": "Browser locale (e.g. 'en-US', 'zh-CN')."},
                     "fingerprint_seed": {"type": "string", "description": "Deterministic fingerprint seed."},
-                    "geoip": {"type": "boolean", "default": False, "description": "Auto-detect timezone/locale from proxy IP."},
+                    "geoip": {"type": "boolean", "default": True, "description": "Auto-detect timezone/locale from proxy IP. Default True."},
                 },
             },
         ),

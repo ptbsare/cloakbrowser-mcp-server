@@ -18,28 +18,31 @@ def _parse_ref(ref: str) -> str:
 
 
 async def tool_launch(
-    headless: bool = True,
+    headless: bool = False,
     proxy: Optional[str] = None,
-    humanize: bool = False,
+    humanize: bool = True,
     user_agent: Optional[str] = None,
     viewport_width: int = 1280,
     viewport_height: int = 720,
     locale: Optional[str] = None,
     fingerprint_seed: Optional[str] = None,
-    geoip: bool = False,
+    geoip: bool = True,
 ) -> str:
     """Launch a stealth CloakBrowser instance.
 
+    Anti-detection features are ON by default. Explicitly pass
+    headless=True, humanize=False, or geoip=False to disable.
+
     Args:
-        headless: Run in headless mode (default: True).
+        headless: Run headless. Default False (headed) for best stealth.
         proxy: Proxy URL (http/socks5).
-        humanize: Enable human-like mouse/keyboard behavior.
+        humanize: Human-like mouse/keyboard. Default True.
         user_agent: Custom User-Agent string.
         viewport_width: Viewport width in pixels.
         viewport_height: Viewport height in pixels.
         locale: Browser locale (e.g. 'en-US', 'zh-CN').
         fingerprint_seed: Deterministic fingerprint seed for consistent identity.
-        geoip: Auto-detect timezone/locale from proxy IP.
+        geoip: Auto-detect timezone/locale from proxy IP. Default True.
     """
     mgr = get_manager()
     await mgr.ensure_browser(
