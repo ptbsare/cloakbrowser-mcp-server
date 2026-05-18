@@ -103,6 +103,21 @@ async def _get_snapshot(mgr, full: bool = False) -> str:
     """Build a text snapshot of the page with ref IDs for interactive elements."""
     page = mgr.page
     try:
+        # Wait briefly for dynamic content to render (JS frameworks, AJAX)
+        try:
+            await page.wait_for_function(
+                "() => document.readyState === 'complete'",
+                timeout=5000,
+            )
+        except Exception:
+            pass
+
+        # Small additional wait for JS hydration (React, Vue, Angular)
+        try:
+            await page.wait_for_timeout(500)
+        except Exception:
+            pass
+
         # Get all interactive elements with refs
         elements = await page.evaluate("""() => {
             const interactive = document.querySelectorAll(
