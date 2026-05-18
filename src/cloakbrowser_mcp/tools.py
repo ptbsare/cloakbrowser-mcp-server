@@ -90,8 +90,9 @@ async def tool_navigate(url: str) -> str:
         except Exception:
             pass
 
-    # Get compact snapshot (includes additional DOM stability wait)
-    snapshot = await _get_snapshot(mgr, full=False)
+    # Get full snapshot (page content + interactive elements) so the
+    # model has full context of the new page after navigation.
+    snapshot = await _get_snapshot(mgr, full=True)
     return f"Navigation status: {status}\n\n{snapshot}"
 
 
