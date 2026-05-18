@@ -18,7 +18,7 @@ def _parse_ref(ref: str) -> str:
 
 
 async def tool_launch(
-    headless: bool = False,
+    headless: bool = True,
     proxy: Optional[str] = None,
     humanize: bool = True,
     user_agent: Optional[str] = None,
@@ -34,7 +34,7 @@ async def tool_launch(
     headless=True, humanize=False, or geoip=False to disable.
 
     Args:
-        headless: Run headless. Default False (headed) for best stealth.
+        headless: Run in headless mode. Default True.
         proxy: Proxy URL (http/socks5).
         humanize: Human-like mouse/keyboard. Default True.
         user_agent: Custom User-Agent string.

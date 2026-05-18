@@ -44,11 +44,11 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="cloak_launch",
-            description="Launch a stealth CloakBrowser instance. Stealth features ON by default (headed, humanize, geoip). Pass headless=True for server use.",
+            description="Launch a stealth CloakBrowser instance. Stealth features ON by default (humanize, geoip).",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "headless": {"type": "boolean", "default": False, "description": "Run headless. Default False (headed) for best stealth."},
+                    "headless": {"type": "boolean", "default": True, "description": "Run in headless mode. Default True."},
                     "proxy": {"type": "string", "description": "Proxy URL (http/socks5)."},
                     "humanize": {"type": "boolean", "default": True, "description": "Human-like mouse/keyboard. Default True."},
                     "user_agent": {"type": "string", "description": "Custom User-Agent string."},
