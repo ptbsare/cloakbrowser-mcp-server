@@ -97,9 +97,6 @@ async def _get_snapshot(mgr, full: bool = False) -> str:
     """Build a text snapshot of the page with ref IDs for interactive elements."""
     page = mgr.page
     try:
-        # Get accessibility tree
-        snapshot = await page.accessibility.snapshot()
-
         # Get all interactive elements with refs
         elements = await page.evaluate("""() => {
             const interactive = document.querySelectorAll(
