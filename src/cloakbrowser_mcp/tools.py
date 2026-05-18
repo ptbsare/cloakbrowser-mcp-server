@@ -569,8 +569,11 @@ async def tool_get_content(
                         parts.push(walker.currentNode.textContent.trim());
                     }
                     // Join with single newline, collapse 3+ newlines to 2
-                    var text = parts.join(String.fromCharCode(10));
-                    text = text.replace(/\n{3,}/g, String.fromCharCode(10,10));
+                    var nl = String.fromCharCode(10);
+                    var text = parts.join(nl);
+                    // Collapse 3+ consecutive newlines to double newline
+                    var pattern = new RegExp(nl + '{3,}', 'g');
+                    text = text.replace(pattern, nl + nl);
                     return text.substring(0, maxLen);
                 }""",
                 [selector, max_length],
