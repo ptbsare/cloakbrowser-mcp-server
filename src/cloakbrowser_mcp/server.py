@@ -72,7 +72,11 @@ def _build_full_server() -> Server:
                     },
                 },
             ),
-            Tool(name="cloak_close", description="Close the browser and clean up resources.", inputSchema={"type": "object", "properties": {}}),
+            Tool(
+                name="cloak_close",
+                description="Close the browser and clean up resources.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
             Tool(
                 name="cloak_navigate",
                 description="Navigate to a URL and return full page content + interactive elements.",
@@ -103,14 +107,26 @@ def _build_full_server() -> Server:
                 description="Scroll the page.",
                 inputSchema={"type": "object", "properties": {"direction": {"type": "string", "enum": ["up", "down"], "default": "down"}}},
             ),
-            Tool(name="cloak_back", description="Navigate back.", inputSchema={"type": "object", "properties": {}}),
-            Tool(name="cloak_forward", description="Navigate forward.", inputSchema={"type": "object", "properties": {}}),
+            Tool(
+                name="cloak_back",
+                description="Navigate back.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
+            Tool(
+                name="cloak_forward",
+                description="Navigate forward.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
             Tool(
                 name="cloak_console",
                 description="Get console logs or evaluate JS.",
                 inputSchema={"type": "object", "properties": {"clear": {"type": "boolean", "default": False}, "expression": {"type": "string"}}},
             ),
-            Tool(name="cloak_get_images", description="List all images on the page.", inputSchema={"type": "object", "properties": {}}),
+            Tool(
+                name="cloak_get_images",
+                description="List all images on the page.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
             Tool(
                 name="cloak_screenshot",
                 description="Take a PNG screenshot.",
@@ -131,7 +147,11 @@ def _build_full_server() -> Server:
                 description="Get clean text or HTML of page/element.",
                 inputSchema={"type": "object", "properties": {"selector": {"type": "string", "default": "body"}, "text_only": {"type": "boolean", "default": True}, "max_length": {"type": "integer", "default": 10000}}},
             ),
-            Tool(name="cloak_extract_links", description="Extract all links as JSON.", inputSchema={"type": "object", "properties": {}}),
+            Tool(
+                name="cloak_extract_links",
+                description="Extract all links as JSON.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
             Tool(
                 name="cloak_fill_form",
                 description="Fill multiple form fields.",
@@ -144,12 +164,36 @@ def _build_full_server() -> Server:
                     "required": ["fields"],
                 },
             ),
-            Tool(name="cloak_hover", description="Hover over element by ref.", inputSchema={"type": "object", "properties": {"ref": {"type": "string"}}, "required": ["ref"]),
-            Tool(name="cloak_select_option", description="Select dropdown option.", inputSchema={"type": "object", "properties": {"ref": {"type": "string"}, "values": {"type": "array", "items": {"type": "string"}}}, "required": ["ref", "values"]),
-            Tool(name="cloak_drag", description="Drag element to element.", inputSchema={"type": "object", "properties": {"ref_from": {"type": "string"}, "ref_to": {"type": "string"}}, "required": ["ref_from", "ref_to"]),
-            Tool(name="cloak_save_storage_state", description="Save cookies/localStorage to JSON.", inputSchema={"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]),
-            Tool(name="cloak_load_storage_state", description="Load cookies/localStorage from JSON.", inputSchema={"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]),
-            Tool(name="cloak_info", description="Get current page URL, title, viewport.", inputSchema={"type": "object", "properties": {}}),
+            Tool(
+                name="cloak_hover",
+                description="Hover over element by ref.",
+                inputSchema={"type": "object", "properties": {"ref": {"type": "string"}}, "required": ["ref"]},
+            ),
+            Tool(
+                name="cloak_select_option",
+                description="Select dropdown option.",
+                inputSchema={"type": "object", "properties": {"ref": {"type": "string"}, "values": {"type": "array", "items": {"type": "string"}}}, "required": ["ref", "values"]},
+            ),
+            Tool(
+                name="cloak_drag",
+                description="Drag element to element.",
+                inputSchema={"type": "object", "properties": {"ref_from": {"type": "string"}, "ref_to": {"type": "string"}}, "required": ["ref_from", "ref_to"]},
+            ),
+            Tool(
+                name="cloak_save_storage_state",
+                description="Save cookies/localStorage to JSON.",
+                inputSchema={"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]},
+            ),
+            Tool(
+                name="cloak_load_storage_state",
+                description="Load cookies/localStorage from JSON.",
+                inputSchema={"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]},
+            ),
+            Tool(
+                name="cloak_info",
+                description="Get current page URL, title, viewport.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
         ]
         return tool_list
 
