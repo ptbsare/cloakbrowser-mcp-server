@@ -73,8 +73,14 @@ async def tool_navigate(url: str) -> str:
     if not mgr.is_running:
         await mgr.ensure_browser()
 
-    response = await mgr.page.goto(url, wait_until="domcontentloaded", timeout=30000)
+    response = await mgr.page.goto(url, wait_until="networkidle", timeout=30000)
     status = response.status if response else "unknown"
+
+    # Wait for DOM to stabilize (JS frameworks hydration, dynamic content)
+    try:
+        await mgr.page.wait_for_load_state("networkidle", timeout=5000)
+    except Exception:
+        pass
 
     # Get compact snapshot
     snapshot = await _get_snapshot(mgr, full=False)
