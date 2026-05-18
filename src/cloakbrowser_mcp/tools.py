@@ -569,8 +569,8 @@ async def tool_get_content(
                         parts.push(walker.currentNode.textContent.trim());
                     }
                     // Join with single newline, collapse 3+ newlines to 2
-                    let text = parts.join('\n');
-                    text = text.replace(/\n{3,}/g, '\n\n');
+                    var text = parts.join(String.fromCharCode(10));
+                    text = text.replace(/\n{3,}/g, String.fromCharCode(10,10));
                     return text.substring(0, maxLen);
                 }""",
                 [selector, max_length],
