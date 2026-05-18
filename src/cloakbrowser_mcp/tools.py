@@ -73,16 +73,24 @@ async def tool_navigate(url: str) -> str:
     if not mgr.is_running:
         await mgr.ensure_browser()
 
-    response = await mgr.page.goto(url, wait_until="networkidle", timeout=30000)
+    # Use domcontentloaded to avoid timeout on pages with persistent
+    # connections (WebSocket, long-polling, ads, analytics, etc.)
+    response = await mgr.page.goto(url, wait_until="domcontentloaded", timeout=30000)
     status = response.status if response else "unknown"
 
-    # Wait for DOM to stabilize (JS frameworks hydration, dynamic content)
+    # Best-effort: try waiting for networkidle with a short timeout.
+    # Many real-world pages (Discourse, forums, SPAs) never reach
+    # networkidle due to background connections, so we gracefully
+    # fall back to dom-ready + a small fixed delay.
     try:
         await mgr.page.wait_for_load_state("networkidle", timeout=5000)
     except Exception:
-        pass
+        try:
+            await mgr.page.wait_for_load_state("domcontentloaded", timeout=3000)
+        except Exception:
+            pass
 
-    # Get compact snapshot
+    # Get compact snapshot (includes additional DOM stability wait)
     snapshot = await _get_snapshot(mgr, full=False)
     return f"Navigation status: {status}\n\n{snapshot}"
 
