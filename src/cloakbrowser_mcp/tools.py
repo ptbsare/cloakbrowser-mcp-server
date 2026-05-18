@@ -11,6 +11,44 @@ from .browser_manager import get_manager
 logger = logging.getLogger(__name__)
 
 
+async def tool_fetch(
+    url: str,
+    max_length: int = 50000,
+) -> dict:
+    """Fetch a web page and return its text content + screenshot.
+
+    One-shot tool: launches browser (auto-downloads if needed),
+    loads cookies from CLOAKBROWSER_COOKIES_FILE env var,
+    navigates to the URL, waits for page to load,
+    extracts clean text, takes a screenshot, then closes the browser.
+
+    All anti-detection features are enabled by default
+    (headless=True, humanize=True, geoip=True).
+
+    Args:
+        url: The URL to fetch.
+        max_length: Max text length in characters (default 50000).
+    """
+    mgr = get_manager()
+    try:
+        # Launch with all stealth defaults
+        await mgr.ensure_browser(
+            headless=True,
+            humanize=True,
+            geoip=True,
+        )
+
+        # Fetch page
+        result = await mgr.fetch_url(url, max_length=max_length)
+        return result
+    except Exception as e:
+        logger.exception("tool_fetch error")
+        return {"error": str(e)}
+    finally:
+        # Always close browser after one-shot fetch
+        await mgr.close()
+
+
 def _parse_ref(ref: str) -> str:
     """Convert @e12 style ref to CSS selector for Playwright."""
     # Store element refs from snapshot for later use
