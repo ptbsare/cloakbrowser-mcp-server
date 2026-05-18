@@ -24,10 +24,14 @@ Stealth browser automation via MCP protocol. Wraps CloakBrowser — a Chromium f
 
 ## Setup
 
-### Install
+### Install & Run
 
 ```bash
-pip install mcp-cloakbrowser
+# Default mode (full 24-tool MCP server)
+uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp
+
+# --once mode (single-tool fetch: text + screenshot)
+uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
 ```
 
 ### Configure in Hermes
@@ -37,8 +41,8 @@ Add to `~/.hermes/config.yaml`:
 ```yaml
 mcp_servers:
   cloakbrowser:
-    command: "python"
-    args: ["-m", "cloakbrowser_mcp.server"]
+    command: "uvx"
+    args: ["--from", "git+https://github.com/ptbsare/cloakbrowser-mcp-server", "cloakbrowser-mcp"]
     timeout: 120
 ```
 

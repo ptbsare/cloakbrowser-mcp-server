@@ -12,9 +12,9 @@ Two modes:
 
 ## Quick Start
 
-### Install & Run (recommended: uvx)
+### Install & Run
 
-No install needed. Run directly from the Git repo:
+No install needed. Run directly via [uvx](https://docs.astral.sh/uv/guides/tools/) from the Git repo:
 
 ```bash
 # Default mode (full 24-tool MCP server)
@@ -25,14 +25,6 @@ uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-m
 ```
 
 CloakBrowser's patched Chromium (~200MB) auto-downloads on first run. Subsequent launches are fast.
-
-### Alternative: pip install
-
-```bash
-pip install mcp-cloakbrowser
-cloakbrowser-mcp          # default mode
-cloakbrowser-mcp --once   # single-tool fetch mode
-```
 
 ### Use with Claude Desktop / Cursor
 

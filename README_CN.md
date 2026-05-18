@@ -12,9 +12,9 @@
 
 ## 快速开始
 
-### 安装与运行（推荐：uvx + Git URL）
+### 安装与运行
 
-无需安装，直接从 Git 仓库运行：
+无需安装，直接通过 [uvx](https://docs.astral.sh/uv/guides/tools/) 从 Git 仓库运行：
 
 ```bash
 # 默认模式（完整 24 工具 MCP 服务器）
@@ -25,14 +25,6 @@ uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-m
 ```
 
 首次运行会自动下载 CloakBrowser 补丁版 Chromium（约 200MB），后续启动秒开。
-
-### 备选：pip 安装
-
-```bash
-pip install mcp-cloakbrowser
-cloakbrowser-mcp          # 默认模式
-cloakbrowser-mcp --once   # 单工具抓取模式
-```
 
 ### 配合 Claude Desktop / Cursor 使用
 
