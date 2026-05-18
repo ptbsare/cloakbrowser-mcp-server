@@ -517,9 +517,15 @@ async def tool_get_content(
 ) -> str:
     """Get content of an element or the entire page.
 
+    When text_only=True (default), returns clean visible text with
+    excessive whitespace collapsed. Style/script tags are excluded.
+
+    When text_only=False, returns innerHTML with <style>, <script>,
+    and <noscript> tags stripped.
+
     Args:
         selector: CSS selector (default: 'body' for entire page).
-        text_only: If true, return text only. If false, return innerHTML.
+        text_only: If true, return clean text. If false, return cleaned HTML.
         max_length: Maximum content length in characters.
     """
     mgr = get_manager()
@@ -532,11 +538,59 @@ async def tool_get_content(
             return f"Error: Element '{selector}' not found."
 
         if text_only:
-            content = await element.text_content()
+            # Use TreeWalker to get only visible text nodes,
+            # then collapse excessive whitespace.
+            content = await mgr.page.evaluate(
+                """([sel, maxLen]) => {
+                    const root = document.querySelector(sel) || document.body;
+                    const walker = document.createTreeWalker(
+                        root,
+                        NodeFilter.SHOW_TEXT,
+                        {
+                            acceptNode: (node) => {
+                                const parent = node.parentElement;
+                                if (!parent) return NodeFilter.FILTER_REJECT;
+                                // Skip style, script, noscript, template
+                                const tag = parent.tagName.toLowerCase();
+                                if (['style','script','noscript','template','head'].includes(tag))
+                                    return NodeFilter.FILTER_REJECT;
+                                // Skip hidden elements
+                                const style = window.getComputedStyle(parent);
+                                if (style.display === 'none' || style.visibility === 'hidden')
+                                    return NodeFilter.FILTER_REJECT;
+                                // Skip empty text
+                                if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+                                return NodeFilter.FILTER_ACCEPT;
+                            }
+                        }
+                    );
+                    const parts = [];
+                    while (walker.nextNode()) {
+                        parts.push(walker.currentNode.textContent.trim());
+                    }
+                    // Join with single newline, collapse 3+ newlines to 2
+                    let text = parts.join('\n');
+                    text = text.replace(/\n{3,}/g, '\n\n');
+                    return text.substring(0, maxLen);
+                }""",
+                [selector, max_length],
+            )
         else:
-            content = await element.inner_html()
+            # Return innerHTML but strip style/script/noscript tags
+            content = await mgr.page.evaluate(
+                """([sel, maxLen]) => {
+                    const root = document.querySelector(sel) || document.body;
+                    // Clone so we don't modify the live DOM
+                    const clone = root.cloneNode(true);
+                    // Remove non-content tags
+                    for (const tag of ['style','script','noscript','template']) {
+                        clone.querySelectorAll(tag).forEach(el => el.remove());
+                    }
+                    return clone.innerHTML.substring(0, maxLen);
+                }""",
+                [selector, max_length],
+            )
 
-        content = content[:max_length]
         return content
     except Exception as e:
         return f"Error getting content: {e}"
