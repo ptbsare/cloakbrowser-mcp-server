@@ -155,6 +155,27 @@ await call_tool("cloak_save_storage_state", {"path": "session.json"})
 await call_tool("cloak_load_storage_state", {"path": "session.json"})
 ```
 
+### 🍪 自动加载 Cookie（爬取需要登录的网站）
+
+设置环境变量后，每次启动浏览器时会自动从 cookie.txt 加载登录态：
+
+```bash
+export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
+```
+
+cookie.txt 使用标准的 Netscape 格式（tab 分隔），可以从浏览器插件导出：
+- Chrome 插件：EditThisCookie、cookie-editor
+- Firefox 插件：cookies.txt
+- 命令行工具：`yt-dlp --cookies cookies.txt` 等
+
+文件格式示例：
+```
+.example.com	TRUE	/	TRUE	1735689600	session_id	abc123xyz
+.example.com	TRUE	/	FALSE	0	user_pref	dark_mode
+```
+
+设置后对大模型完全透明，无需任何额外工具调用。
+
 ## 🔑 为什么用 `cloak_` 前缀？
 
 Hermes Agent 自带 `browser_*` 工具（browser_navigate、browser_click 等），使用内置的 Playwright 实例。如果 MCP 工具也用同样的名字会产生冲突。`cloak_` 前缀明确表示这些工具使用的是 CloakBrowser 隐身 Chromium，并且可以在同一会话中同时使用两套工具：

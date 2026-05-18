@@ -155,6 +155,27 @@ await call_tool("cloak_save_storage_state", {"path": "session.json"})
 await call_tool("cloak_load_storage_state", {"path": "session.json"})
 ```
 
+### Auto-Load Cookies (for scraping authenticated sites)
+
+Set the environment variable and cookies will be auto-loaded on every browser launch:
+
+```bash
+export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
+```
+
+The cookie.txt file uses the standard Netscape format (tab-separated), exportable from:
+- Chrome extensions: EditThisCookie, cookie-editor
+- Firefox extensions: cookies.txt
+- CLI tools: `yt-dlp --cookies cookies.txt`, etc.
+
+File format example:
+```
+.example.com	TRUE	/	TRUE	1735689600	session_id	abc123xyz
+.example.com	TRUE	/	FALSE	0	user_pref	dark_mode
+```
+
+This is fully transparent to the AI agent — no extra tool calls needed.
+
 ## Why `cloak_*` Prefix?
 
 Hermes Agent has built-in `browser_*` tools (browser_navigate, browser_click, etc.) that use its own Playwright instance. Using the same names would cause conflicts. The `cloak_` prefix makes it clear these tools use CloakBrowser's stealth Chromium, and allows you to use both in the same session:

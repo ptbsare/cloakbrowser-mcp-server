@@ -80,8 +80,8 @@ All tools prefixed with `mcp_cloakbrowser_`:
 | `cloak_hover` | Hover over element |
 | `cloak_select_option` | Select in `<select>` |
 | `cloak_drag` | Drag element to element |
-| `cloak_save_storage_state` | Save cookies/localStorage |
-| `cloak_load_storage_state` | Load cookies/localStorage |
+| `cloak_save_storage_state` | Save cookies/localStorage to JSON file |
+| `cloak_load_storage_state` | Load cookies/localStorage from JSON file |
 | `cloak_info` | Get URL, title, viewport info |
 
 ## Workflow
@@ -124,6 +124,15 @@ cloak_launch(
     humanize=True
 )
 ```
+
+### Auto-Load Cookies for Authenticated Scraping
+
+Set the environment variable before launching the browser:
+```bash
+export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
+```
+Cookies are auto-injected on every `cloak_launch`. Supports Netscape cookie.txt format
+(exported from EditThisCookie, cookie-editor, yt-dlp, etc.).
 
 ## Pitfalls
 
