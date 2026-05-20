@@ -122,7 +122,12 @@ class BrowserManager:
 
                 self._context = await self._browser.new_context(**context_kwargs)
 
-            self._page = await self._context.new_page()
+            # Persistent context already has a page; use it directly.
+            # Temporary context needs an explicit new_page().
+            if user_data_dir:
+                self._page = self._context.pages[0]
+            else:
+                self._page = await self._context.new_page()
 
             # Set up console log capture
             self._page.on("console", self._on_console)
