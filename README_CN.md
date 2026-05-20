@@ -60,8 +60,9 @@ mcp_servers:
 专为机器爬取设计。一个工具，一个 URL，返回一切：
 
 ```bash
-# 可选：自动加载登录 cookie
+# 可选：自动加载登录 cookie 和/或持久化 profile
 export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
+export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
 
 uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
 ```
@@ -207,6 +208,28 @@ export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
 ```
 
 对大模型完全透明，无需额外工具调用。
+
+### 持久化浏览器 Profile
+
+设置 `CLOAKBROWSER_USER_DATA_DIR` 为目录路径，浏览器状态（cookie、localStorage、登录态、Cloudflare 验证）将在重启后自动保留。登录一次，永久有效：
+
+```bash
+export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
+```
+
+底层使用 Playwright 的 `user_data_dir` 机制，目录不存在时自动创建。
+
+**推荐工作流：**
+1. 设置 `CLOAKBROWSER_USER_DATA_DIR` 和 `CLOAKBROWSER_COOKIES_FILE`
+2. 启动浏览器并手动登录（或通过 `cloak_fill_form` 自动填写）
+3. 后续启动自动保留登录态，无需重新导入 cookie
+
+两者结合使用效果最佳：
+```bash
+export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
+export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
+uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp
+```
 
 ## 为什么用 `cloak_` 前缀？
 

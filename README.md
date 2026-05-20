@@ -60,8 +60,9 @@ mcp_servers:
 Designed for machine scraping. One tool, one URL, returns everything:
 
 ```bash
-# Optional: auto-load login cookies
+# Optional: auto-load login cookies and/or persistent profile
 export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
+export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
 
 uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
 ```
@@ -207,6 +208,32 @@ File format:
 ```
 
 Fully transparent to the AI agent — no extra tool calls needed.
+
+### Persistent Browser Profile
+
+Set `CLOAKBROWSER_USER_DATA_DIR` to a directory path and the browser will
+persist its state (cookies, localStorage, login sessions, Cloudflare
+clearance) across restarts. Login once, stay logged in forever:
+
+```bash
+export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
+```
+
+This uses Playwright's `user_data_dir` mechanism under the hood. The
+directory is created automatically if it doesn't exist.
+
+**Recommended workflow:**
+1. Set `CLOAKBROWSER_USER_DATA_DIR` and `CLOAKBROWSER_COOKIES_FILE`
+2. Launch the browser and log in manually (or via `cloak_fill_form`)
+3. On subsequent launches, login state is preserved automatically
+4. No need to re-import cookies each time
+
+Combine with cookie auto-load for the best of both worlds:
+```bash
+export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
+export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
+uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp
+```
 
 ## Why `cloak_*` Prefix?
 
