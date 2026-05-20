@@ -49,7 +49,7 @@ class BrowserManager:
         Otherwise creates a fresh temporary profile each time.
         """
         async with self._lock:
-            if self._browser is not None:
+            if self._browser is not None or self._context is not None:
                 return
 
             user_data_dir = os.environ.get(USER_DATA_DIR_ENV)
@@ -234,16 +234,20 @@ class BrowserManager:
     async def close(self):
         """Close browser and cleanup."""
         async with self._lock:
+            if self._context:
+                try:
+                    await self._context.close()
+                except Exception as e:
+                    logger.warning(f"Error closing context: {e}")
             if self._browser:
                 try:
                     await self._browser.close()
                 except Exception as e:
                     logger.warning(f"Error closing browser: {e}")
-                finally:
-                    self._browser = None
-                    self._context = None
-                    self._page = None
-                    self._console_logs.clear()
+            self._browser = None
+            self._context = None
+            self._page = None
+            self._console_logs.clear()
 
     async def fetch_url(
         self,
@@ -336,7 +340,7 @@ class BrowserManager:
 
     @property
     def is_running(self) -> bool:
-        return self._browser is not None and self._page is not None
+        return self._page is not None and not self._page.is_closed()
 
 
 # Global singleton
