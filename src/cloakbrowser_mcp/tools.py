@@ -45,8 +45,10 @@ async def tool_fetch(
         logger.exception("tool_fetch error")
         return {"error": str(e)}
     finally:
-        # Always close browser after one-shot fetch
-        await mgr.close()
+        # Close browser only if NOT using a persistent profile.
+        # With user_data_dir, closing would destroy the session.
+        if not os.environ.get("CLOAKBROWSER_USER_DATA_DIR"):
+            await mgr.close()
 
 
 def _parse_ref(ref: str) -> str:

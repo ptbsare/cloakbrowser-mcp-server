@@ -15,7 +15,7 @@ COOKIES_FILE_ENV = "CLOAKBROWSER_COOKIES_FILE"
 # Environment variable for persistent browser profile directory
 USER_DATA_DIR_ENV = "CLOAKBROWSER_USER_DATA_DIR"
 
-from cloakbrowser import launch, launch_async, launch_context, launch_context_async
+from cloakbrowser import launch, launch_async, launch_context, launch_context_async, launch_persistent_context_async
 
 logger = logging.getLogger(__name__)
 
@@ -62,20 +62,29 @@ class BrowserManager:
                 # Persistent profile — browser state survives restarts
                 Path(user_data_dir).mkdir(parents=True, exist_ok=True)
 
-                launch_kwargs = {
-                    "headless": headless,
+                persistent_kwargs = {
                     "user_data_dir": user_data_dir,
+                    "headless": headless,
                 }
                 if proxy:
-                    launch_kwargs["proxy"] = proxy
+                    persistent_kwargs["proxy"] = proxy
                 if humanize:
-                    launch_kwargs["humanize"] = humanize
+                    persistent_kwargs["humanize"] = humanize
                 if args:
-                    launch_kwargs["args"] = args
+                    persistent_kwargs["args"] = args
                 if geoip:
-                    launch_kwargs["geoip"] = geoip
+                    persistent_kwargs["geoip"] = geoip
+                if user_agent:
+                    persistent_kwargs["user_agent"] = user_agent
+                if locale:
+                    persistent_kwargs["locale"] = locale
+                if viewport_width and viewport_height:
+                    persistent_kwargs["viewport"] = {
+                        "width": viewport_width,
+                        "height": viewport_height,
+                    }
 
-                self._context = await launch_context_async(**launch_kwargs)
+                self._context = await launch_persistent_context_async(**persistent_kwargs)
                 self._browser = None  # context owns the browser
             else:
                 # Temporary profile — fresh each time
