@@ -62,6 +62,16 @@ class BrowserManager:
                 # Persistent profile — browser state survives restarts
                 Path(user_data_dir).mkdir(parents=True, exist_ok=True)
 
+                # Clean up stale Chromium lock files from unclean shutdowns
+                for lock_name in ("SingletonLock", "SingletonCookie", "SingletonSocket"):
+                    lock_path = Path(user_data_dir) / lock_name
+                    if lock_path.exists():
+                        try:
+                            lock_path.unlink()
+                            logger.info("Removed stale lock file: %s", lock_path)
+                        except OSError:
+                            pass
+
                 persistent_kwargs = {
                     "user_data_dir": user_data_dir,
                     "headless": headless,
