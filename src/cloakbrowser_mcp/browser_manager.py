@@ -12,6 +12,9 @@ from typing import Optional
 # Environment variable for auto-loading cookies on browser launch
 COOKIES_FILE_ENV = "CLOAKBROWSER_COOKIES_FILE"
 
+# Environment variable for persistent browser profile directory
+USER_DATA_DIR_ENV = "CLOAKBROWSER_USER_DATA_DIR"
+
 from cloakbrowser import launch, launch_async, launch_context, launch_context_async
 
 logger = logging.getLogger(__name__)
@@ -39,38 +42,67 @@ class BrowserManager:
         fingerprint_seed: Optional[str] = None,
         geoip: bool = False,
     ):
-        """Launch browser if not already running."""
+        """Launch browser if not already running.
+
+        If CLOAKBROWSER_USER_DATA_DIR env var is set, uses a persistent
+        browser profile (cookies, localStorage, login sessions survive restarts).
+        Otherwise creates a fresh temporary profile each time.
+        """
         async with self._lock:
             if self._browser is not None:
                 return
+
+            user_data_dir = os.environ.get(USER_DATA_DIR_ENV)
 
             args = []
             if fingerprint_seed:
                 args.append(f"--fingerprint={fingerprint_seed}")
 
-            launch_kwargs = {
-                "headless": headless,
-            }
-            if proxy:
-                launch_kwargs["proxy"] = proxy
-            if humanize:
-                launch_kwargs["humanize"] = humanize
-            if args:
-                launch_kwargs["args"] = args
-            if geoip:
-                launch_kwargs["geoip"] = geoip
+            if user_data_dir:
+                # Persistent profile — browser state survives restarts
+                Path(user_data_dir).mkdir(parents=True, exist_ok=True)
 
-            self._browser = await launch_async(**launch_kwargs)
+                launch_kwargs = {
+                    "headless": headless,
+                    "user_data_dir": user_data_dir,
+                }
+                if proxy:
+                    launch_kwargs["proxy"] = proxy
+                if humanize:
+                    launch_kwargs["humanize"] = humanize
+                if args:
+                    launch_kwargs["args"] = args
+                if geoip:
+                    launch_kwargs["geoip"] = geoip
 
-            context_kwargs = {
-                "viewport": {"width": viewport_width, "height": viewport_height},
-            }
-            if user_agent:
-                context_kwargs["user_agent"] = user_agent
-            if locale:
-                context_kwargs["locale"] = locale
+                self._context = await launch_context_async(**launch_kwargs)
+                self._browser = None  # context owns the browser
+            else:
+                # Temporary profile — fresh each time
+                launch_kwargs = {
+                    "headless": headless,
+                }
+                if proxy:
+                    launch_kwargs["proxy"] = proxy
+                if humanize:
+                    launch_kwargs["humanize"] = humanize
+                if args:
+                    launch_kwargs["args"] = args
+                if geoip:
+                    launch_kwargs["geoip"] = geoip
 
-            self._context = await self._browser.new_context(**context_kwargs)
+                self._browser = await launch_async(**launch_kwargs)
+
+                context_kwargs = {
+                    "viewport": {"width": viewport_width, "height": viewport_height},
+                }
+                if user_agent:
+                    context_kwargs["user_agent"] = user_agent
+                if locale:
+                    context_kwargs["locale"] = locale
+
+                self._context = await self._browser.new_context(**context_kwargs)
+
             self._page = await self._context.new_page()
 
             # Set up console log capture
@@ -79,7 +111,7 @@ class BrowserManager:
             # Auto-load cookies from file if CLOAKBROWSER_COOKIES_FILE is set
             await self._auto_load_cookies_from_env()
 
-            logger.info("Browser launched successfully")
+            logger.info("Browser launched successfully (persistent=%s)", bool(user_data_dir))
 
     def _on_console(self, msg):
         """Capture console messages."""
