@@ -96,6 +96,11 @@ class BrowserManager:
 
                 self._context = await launch_persistent_context_async(**persistent_kwargs)
                 self._browser = None  # context owns the browser
+                # Persistent context already has a page (about:blank); reuse it
+                # instead of creating a new one, so the visible window shows
+                # the page we actually navigate to.
+                _existing = self._context.pages
+                self._page = _existing[0] if _existing else await self._context.new_page()
             else:
                 # Temporary profile — fresh each time
                 launch_kwargs = {
@@ -122,11 +127,8 @@ class BrowserManager:
 
                 self._context = await self._browser.new_context(**context_kwargs)
 
-            # Persistent context already has a page; use it directly.
-            # Temporary context needs an explicit new_page().
-            if user_data_dir:
-                self._page = self._context.pages[0]
-            else:
+            # For non-persistent context, create a page explicitly
+            if not user_data_dir:
                 self._page = await self._context.new_page()
 
             # Set up console log capture
