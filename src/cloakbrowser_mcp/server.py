@@ -2,10 +2,8 @@
 
 Stealth browser automation via MCP protocol, powered by CloakBrowser.
 
-Two modes:
-  Default: full MCP server with all interactive tools (--caps controls subsets).
-  --once:  single-tool "fetch" mode for automated scraping. One tool, one URL,
-           returns text + screenshot, then exits. All stealth defaults enabled.
+Full MCP server with all interactive tools including cloak_fetch
+for quick page fetching with auto-launch capability.
 """
 
 import argparse
