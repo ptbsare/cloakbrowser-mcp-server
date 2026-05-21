@@ -265,7 +265,13 @@ def _build_full_server() -> Server:
             elif name == "cloak_info":
                 return _text(await tools.tool_info())
             elif name == "cloak_fetch":
-                return _text(await tools.tool_fetch(**arguments))
+                result = json.loads(await tools.tool_fetch(**arguments))
+                if "error" in result:
+                    return _text(f"Error: {result['error']}")
+                return [
+                    TextContent(type="text", text=f"URL: {result['url']}\nTitle: {result['title']}\n\n{result['text']}"),
+                    ImageContent(type="image", data=result["screenshot"], mimeType="image/png"),
+                ]
             else:
                 return _text(f"Unknown tool: {name}")
         except Exception as e:
