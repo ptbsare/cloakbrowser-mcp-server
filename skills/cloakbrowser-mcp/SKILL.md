@@ -1,6 +1,6 @@
 ---
 name: cloakbrowser-mcp
-description: "Stealth browser automation via MCP — CloakBrowser with 57 C++ fingerprint patches, passes all bot detection tests."
+description: "Stealth browser automation via MCP — CloakBrowser with 57 C++ fingerprint patches, passes all bot detection tests. 25 tools including cloak_fetch for quick page fetching."
 version: 2.0.0
 author: MiwooMiwoo
 license: MIT
@@ -27,11 +27,8 @@ Stealth browser automation via MCP protocol. Wraps CloakBrowser — a Chromium f
 ### Install & Run
 
 ```bash
-# Default mode (full 24-tool MCP server)
+# MCP server (25 tools including cloak_fetch)
 uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp
-
-# --once mode (single-tool fetch: text + screenshot)
-uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
 ```
 
 ### Configure in Hermes
@@ -87,6 +84,7 @@ All tools prefixed with `mcp_cloakbrowser_`:
 | `cloak_save_storage_state` | Save cookies/localStorage to JSON file |
 | `cloak_load_storage_state` | Load cookies/localStorage from JSON file |
 | `cloak_info` | Get URL, title, viewport info |
+| `cloak_fetch` | Fetch page — auto-launches, returns text + screenshot |
 
 ## Workflow
 
@@ -97,6 +95,18 @@ All tools prefixed with `mcp_cloakbrowser_`:
 3. `cloak_click` / `cloak_type` / `cloak_press` to interact
 4. `cloak_snapshot` to see updated page state
 5. `cloak_close` when done
+
+### Quick Page Fetch
+
+Use `cloak_fetch` for one-shot page scraping. It auto-launches the browser
+if not running, fetches the page, and returns clean text + screenshot.
+The browser stays open for further interaction:
+
+```
+cloak_fetch(url="https://example.com")
+# → returns text + screenshot
+# browser is still running, use cloak_navigate/click/type for more
+```
 
 ### Bypassing Bot Detection
 
