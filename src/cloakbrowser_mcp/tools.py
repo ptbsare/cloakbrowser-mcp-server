@@ -14,39 +14,36 @@ logger = logging.getLogger(__name__)
 async def tool_fetch(
     url: str,
     max_length: int = 50000,
-) -> dict:
+) -> str:
     """Fetch a web page and return its text content + screenshot.
 
-    One-shot tool: launches browser (auto-downloads if needed),
-    loads cookies from CLOAKBROWSER_COOKIES_FILE env var,
-    navigates to the URL, waits for page to load,
-    extracts clean text, takes a screenshot, then closes the browser.
-
-    All anti-detection features are enabled by default
-    (headless=True, humanize=True, geoip=True).
+    Uses the shared browser instance (launch with cloak_launch first).
+    If browser is not running, launches with all stealth defaults.
+    Does NOT close the browser after fetch — call cloak_close when done.
 
     Args:
         url: The URL to fetch.
         max_length: Max text length in characters (default 50000).
+
+    Returns:
+        JSON string with keys: text, screenshot (base64), url, title
     """
+    import json as _json
     mgr = get_manager()
     try:
-        # Launch with all stealth defaults
-        await mgr.ensure_browser(
-            headless=True,
-            humanize=True,
-            geoip=True,
-        )
+        # Auto-launch if not running
+        if not mgr.is_running:
+            await mgr.ensure_browser(
+                headless=True,
+                humanize=True,
+                geoip=True,
+            )
 
-        # Fetch page
         result = await mgr.fetch_url(url, max_length=max_length)
-        return result
+        return _json.dumps(result, ensure_ascii=False)
     except Exception as e:
         logger.exception("tool_fetch error")
-        return {"error": str(e)}
-    finally:
-        # Always close browser after one-shot fetch
-        await mgr.close()
+        return _json.dumps({"error": str(e)})
 
 
 def _parse_ref(ref: str) -> str:

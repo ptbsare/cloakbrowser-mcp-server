@@ -35,7 +35,6 @@ logger = logging.getLogger("cloakbrowser-mcp")
 # ---------------------------------------------------------------------------
 # Global state
 # ---------------------------------------------------------------------------
-_once_mode: bool = False
 _caps: set[str] = set()
 
 
@@ -194,6 +193,22 @@ def _build_full_server() -> Server:
                 description="Get current page URL, title, viewport.",
                 inputSchema={"type": "object", "properties": {}},
             ),
+            Tool(
+                name="cloak_fetch",
+                description=(
+                    "Fetch a web page and return its text content + screenshot. "
+                    "Auto-launches browser if not running. "
+                    "Returns JSON with text, screenshot (base64), url, title."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "url": {"type": "string", "description": "The URL to fetch."},
+                        "max_length": {"type": "integer", "default": 50000, "description": "Max text length in characters."},
+                    },
+                    "required": ["url"],
+                },
+            ),
         ]
         return tool_list
 
@@ -249,6 +264,8 @@ def _build_full_server() -> Server:
                 return _text(await tools.tool_load_storage_state(**arguments))
             elif name == "cloak_info":
                 return _text(await tools.tool_info())
+            elif name == "cloak_fetch":
+                return _text(await tools.tool_fetch(**arguments))
             else:
                 return _text(f"Unknown tool: {name}")
         except Exception as e:
@@ -258,78 +275,18 @@ def _build_full_server() -> Server:
     return server
 
 
-def _build_once_server() -> Server:
-    """Build the single-tool --once fetch server."""
-    server = Server("cloakbrowser-mcp")
-
-    @server.list_tools()
-    async def list_tools() -> list[Tool]:
-        return [
-            Tool(
-                name="cloak_fetch",
-                description=(
-                    "Fetch a web page and return its text content + screenshot. "
-                    "One-shot: launches browser with all stealth defaults "
-                    "(headless, humanize, geoip), loads cookies from "
-                    "CLOAKBROWSER_COOKIES_FILE env var, navigates to URL, "
-                    "waits for page load, extracts clean text, takes screenshot, "
-                    "closes browser. Returns text, screenshot (image), url, title."
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "url": {"type": "string", "description": "The URL to fetch."},
-                        "max_length": {"type": "integer", "default": 50000, "description": "Max text length in characters."},
-                    },
-                    "required": ["url"],
-                },
-            ),
-        ]
-
-    @server.call_tool()
-    async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent | ImageContent]:
-        if name != "cloak_fetch":
-            return _text(f"Unknown tool: {name}")
-        try:
-            result = await tools.tool_fetch(**arguments)
-            if "error" in result:
-                return _text(f"Error: {result['error']}")
-            parts: list[TextContent | ImageContent] = [
-                TextContent(type="text", text=f"URL: {result['url']}\nTitle: {result['title']}\n\n{result['text']}"),
-                ImageContent(type="image", data=result["screenshot"], mimeType="image/png"),
-            ]
-            return parts
-        except Exception as e:
-            logger.exception("Error in cloak_fetch")
-            return _text(f"Error: {e}")
-
-    return server
-
-
 async def main():
     """Run the MCP server."""
-    global _once_mode
-    if _once_mode:
-        logger.info("Starting CloakBrowser MCP Server (--once mode)...")
-    else:
-        logger.info("Starting CloakBrowser MCP Server...")
-    server = _build_once_server() if _once_mode else _build_full_server()
+    logger.info("Starting CloakBrowser MCP Server...")
+    server = _build_full_server()
     async with stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
 
 def run():
     """Entry point for CLI."""
-    global _once_mode
     parser = argparse.ArgumentParser(description="CloakBrowser MCP Server")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        default=False,
-        help="Single-tool fetch mode. Only exposes cloak_fetch(url) which returns text + screenshot.",
-    )
-    args = parser.parse_args()
-    _once_mode = args.once
+    parser.parse_args()
     asyncio.run(main())
 
 

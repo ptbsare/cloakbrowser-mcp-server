@@ -20,6 +20,54 @@ from cloakbrowser import launch, launch_async, launch_context, launch_context_as
 logger = logging.getLogger(__name__)
 
 
+def _kill_profile_processes(user_data_dir: str) -> None:
+    """Kill any Chromium processes that are using *user_data_dir*.
+
+    After ``context.close()`` Chromium often lingers for a few seconds.
+    If the profile is re-launched quickly (e.g. --once followed by normal
+    mode) the old process still holds the SingletonLock and the new launch
+    fails with "Opening in existing browser session".
+
+    This function finds those stale processes by matching the profile path
+    in their command-line and sends SIGKILL so the next launch starts clean.
+    """
+    import subprocess
+    import time
+
+    # Clean up stale lock files first
+    for lock_name in ("SingletonLock", "SingletonCookie", "SingletonSocket"):
+        lock_path = Path(user_data_dir) / lock_name
+        if lock_path.exists():
+            try:
+                lock_path.unlink()
+                logger.info("Removed stale lock file: %s", lock_path)
+            except OSError:
+                pass
+
+    # Find and kill Chromium processes bound to this profile
+    try:
+        result = subprocess.run(
+            ["pgrep", "-f", f"chrome.*{user_data_dir}"],
+            capture_output=True, text=True, timeout=3,
+        )
+        if not result.stdout.strip():
+            return
+        pids = result.stdout.strip().split()
+        logger.info(
+            "Found %d stale Chromium process(es) for profile %s – killing",
+            len(pids), user_data_dir,
+        )
+        for pid in pids:
+            try:
+                os.kill(int(pid), 9)
+            except (ProcessLookupError, ValueError):
+                pass
+        # Wait briefly so the OS reaps the processes
+        time.sleep(1)
+    except Exception as exc:
+        logger.debug("Stale-process cleanup skipped: %s", exc)
+
+
 class BrowserManager:
     """Manages a single CloakBrowser instance and its pages."""
 
@@ -240,6 +288,7 @@ class BrowserManager:
 
     async def close(self):
         """Close browser and cleanup."""
+        user_data_dir = os.environ.get(USER_DATA_DIR_ENV)
         async with self._lock:
             if self._context:
                 try:
@@ -255,6 +304,14 @@ class BrowserManager:
             self._context = None
             self._page = None
             self._console_logs.clear()
+
+        # For persistent profiles, kill any remaining Chromium processes
+        # so the next launch doesn't fail with "Opening in existing browser
+        # session".  We match on the full user_data_dir path so we only
+        # kill processes that belong to *our* profile.
+        if user_data_dir:
+            import subprocess
+            _kill_profile_processes(user_data_dir)
 
     async def fetch_url(
         self,
