@@ -6,9 +6,7 @@
 
 封装了 CloakBrowser 的隐身 Chromium —— 通过 **57 个源码级 C++ 指纹补丁**（不是 JS 注入）实现浏览器伪装。通过所有 30 项反 bot 检测（reCAPTCHA v3 评分 0.9、Cloudflare Turnstile: PASS、FingerprintJS: PASS）。
 
-两种模式：
-- **默认模式** — 24 个交互式工具，完整浏览器控制（导航、点击、输入、截图等）
-- **`--once` 模式** — 单工具 `cloak_fetch(url)`，自动抓取页面内容+截图，零配置
+**25 个工具**，完整浏览器控制 + `cloak_fetch` 快速抓取（支持自动启动）。
 
 ## 快速开始
 
@@ -17,11 +15,8 @@
 无需安装，直接通过 [uvx](https://docs.astral.sh/uv/guides/tools/) 从 Git 仓库运行：
 
 ```bash
-# 默认模式（完整 24 工具 MCP 服务器）
+# MCP 服务器（25 工具，含 cloak_fetch）
 uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp
-
-# --once 模式（单工具抓取：文本 + 截图）
-uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
 ```
 
 首次运行会自动下载 CloakBrowser 补丁版 Chromium（约 200MB），后续启动秒开。
@@ -41,7 +36,7 @@ uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-m
 }
 ```
 
-`--once` 模式只需在 args 末尾追加 `"--once"`。
+
 
 ### 配合 Hermes Agent 使用
 
@@ -55,19 +50,9 @@ mcp_servers:
     timeout: 120
 ```
 
-## --once 模式（自动化爬取）
+## 快速抓取：`cloak_fetch`
 
-专为机器爬取设计。一个工具，一个 URL，返回一切：
-
-```bash
-# 可选：自动加载登录 cookie 和/或持久化 profile
-export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
-export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
-
-uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
-```
-
-大模型只需调用：
+专为自动化爬取设计。无需手动调用 `cloak_launch`，自动启动浏览器并抓取：
 
 ```
 cloak_fetch(url="https://example.com")
@@ -79,11 +64,11 @@ cloak_fetch(url="https://example.com")
 - **url** — 最终 URL（重定向后）
 - **title** — 页面标题
 
-所有反检测参数自动启用：`headless=True`、`humanize=True`、`geoip=True`。大模型无需关心任何参数。
+所有反检测参数自动启用：`headless=True`、`humanize=True`、`geoip=True`。抓取后浏览器保持打开，可继续交互。
 
-## 默认模式（完整自动化）
+## 完整自动化（25 工具）
 
-24 个交互式工具，完整浏览器控制。所有工具使用 `cloak_` 前缀，避免与 Hermes Agent 内置的 `browser_*` 工具冲突。
+所有工具使用 `cloak_` 前缀，避免与 Hermes Agent 内置的 `browser_*` 工具冲突。
 
 ### 隐身默认值
 
@@ -125,6 +110,7 @@ cloak_fetch(url="https://example.com")
 | `cloak_save_storage_state` | 保存 cookies/localStorage 到 JSON 文件 |
 | `cloak_load_storage_state` | 从 JSON 文件加载 cookies/localStorage |
 | `cloak_info` | 获取当前页面 URL、标题、视口 |
+| `cloak_fetch` | 抓取页面（自动启动浏览器，返回文本+截图） |
 
 ### 使用示例
 
@@ -256,7 +242,7 @@ CloakBrowser (Playwright 兼容 API)
 隐身 Chromium (57 个 C++ 源码补丁)
 ```
 
-服务器维护浏览器单例。默认模式下浏览器在工具调用间保持；`--once` 模式下每次抓取后自动关闭。
+服务器维护浏览器单例。浏览器在工具调用间保持，直到调用 `cloak_close`。`cloak_fetch` 在浏览器未运行时自动启动，抓取后保持浏览器打开。
 
 ## 与 Hermes 内置浏览器工具的区别
 

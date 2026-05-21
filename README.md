@@ -6,9 +6,7 @@
 
 A drop-in MCP server wrapping CloakBrowser's stealth Chromium with **57 source-level C++ fingerprint patches** — not JS injection. Passes all 30/30 bot detection tests (reCAPTCHA v3 score: 0.9, Cloudflare Turnstile: PASS, FingerprintJS: PASS).
 
-Two modes:
-- **Default mode** — 24 interactive tools for full browser automation (navigate, click, type, screenshot, etc.)
-- **`--once` mode** — single `cloak_fetch(url)` tool for automated scraping, returns text + screenshot, zero config
+**25 tools** for full browser automation plus `cloak_fetch` for quick page fetching with auto-launch.
 
 ## Quick Start
 
@@ -17,11 +15,8 @@ Two modes:
 No install needed. Run directly via [uvx](https://docs.astral.sh/uv/guides/tools/) from the Git repo:
 
 ```bash
-# Default mode (full 24-tool MCP server)
+# MCP server (25 tools including cloak_fetch)
 uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp
-
-# --once mode (single-tool fetch: text + screenshot)
-uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
 ```
 
 CloakBrowser's patched Chromium (~200MB) auto-downloads on first run. Subsequent launches are fast.
@@ -41,7 +36,7 @@ Add to `claude_desktop_mcp.json` or `.vscode/mcp.json`:
 }
 ```
 
-For `--once` mode, append `"--once"` to the args list.
+
 
 ### Use with Hermes Agent
 
@@ -55,19 +50,9 @@ mcp_servers:
     timeout: 120
 ```
 
-## --once Mode (Automated Scraping)
+## Quick Fetch: `cloak_fetch`
 
-Designed for machine scraping. One tool, one URL, returns everything:
-
-```bash
-# Optional: auto-load login cookies and/or persistent profile
-export CLOAKBROWSER_COOKIES_FILE=/path/to/cookies.txt
-export CLOAKBROWSER_USER_DATA_DIR=/path/to/browser-profile
-
-uvx --from git+https://github.com/ptbsare/cloakbrowser-mcp-server cloakbrowser-mcp --once
-```
-
-The AI agent only needs to call:
+For automated scraping, `cloak_fetch` auto-launch the browser, fetches the page, and returns everything — no need to manually call `cloak_launch` first:
 
 ```
 cloak_fetch(url="https://example.com")
@@ -79,11 +64,11 @@ Returns:
 - **url** — final URL after redirects
 - **title** — page title
 
-All anti-detection defaults are auto-enabled: `headless=True`, `humanize=True`, `geoip=True`. No parameters to think about.
+All anti-detection defaults are auto-enabled: `headless=True`, `humanize=True`, `geoip=True`. The browser stays open after fetch for further interaction.
 
-## Default Mode (Full Automation)
+## Full Automation (25 Tools)
 
-24 interactive tools for complete browser control. All tools use the `cloak_` prefix to avoid conflicts with Hermes Agent's built-in `browser_*` tools.
+All tools use the `cloak_` prefix to avoid conflicts with Hermes Agent's built-in `browser_*` tools.
 
 ### Stealth Defaults
 
@@ -125,6 +110,7 @@ Explicitly pass `headless=False`, `humanize=False`, or `geoip=False` to disable.
 | `cloak_save_storage_state` | Save cookies/localStorage to JSON file |
 | `cloak_load_storage_state` | Load cookies/localStorage from JSON file |
 | `cloak_info` | Get current page URL, title, viewport |
+| `cloak_fetch` | Fetch page — auto-launches browser, returns text + screenshot |
 
 ### Tool Usage Examples
 
@@ -260,7 +246,7 @@ CloakBrowser (Playwright-compatible API)
 Stealth Chromium (57 C++ source-level patches)
 ```
 
-The server maintains a single browser instance (singleton pattern). In default mode the browser persists across tool calls. In `--once` mode the browser auto-closes after each fetch.
+The server maintains a single browser instance (singleton pattern). The browser persists across tool calls until `cloak_close` is called. `cloak_fetch` auto-launches the browser if not running and keeps it open after fetching.
 
 ## Development
 
