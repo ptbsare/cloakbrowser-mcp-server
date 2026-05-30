@@ -44,8 +44,8 @@ async def tool_fetch(
                 headless=True,
                 humanize=True,
                 geoip=True,
-                viewport_width=1200,
-                viewport_height=4500,
+                viewport_width=1280,
+                viewport_height=6000,
             )
 
         # Determine the list of URLs to fetch
@@ -89,8 +89,8 @@ async def tool_launch(
     proxy: Optional[str] = None,
     humanize: bool = True,
     user_agent: Optional[str] = None,
-    viewport_width: int = 1200,
-    viewport_height: int = 4500,
+    viewport_width: int = 1280,
+    viewport_height: int = 6000,
     locale: Optional[str] = None,
     fingerprint_seed: Optional[str] = None,
     geoip: bool = True,
