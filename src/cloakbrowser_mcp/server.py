@@ -194,17 +194,18 @@ def _build_full_server() -> Server:
             Tool(
                 name="cloak_fetch",
                 description=(
-                    "Fetch a web page and return its text content + screenshot. "
+                    "Fetch one or more web pages and return their text content + screenshots. "
                     "Auto-launches browser if not running. "
+                    "Pass 'url' for a single page, or 'urls' (list) to fetch multiple pages in parallel. "
                     "Returns JSON with text, screenshot (base64), url, title."
                 ),
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "url": {"type": "string", "description": "The URL to fetch."},
-                        "max_length": {"type": "integer", "default": 50000, "description": "Max text length in characters."},
+                        "url": {"type": "string", "description": "A single URL to fetch."},
+                        "urls": {"type": "array", "items": {"type": "string"}, "description": "List of URLs to fetch in parallel."},
+                        "max_length": {"type": "integer", "default": 50000, "description": "Max text length in characters per page."},
                     },
-                    "required": ["url"],
                 },
             ),
         ]
@@ -263,13 +264,30 @@ def _build_full_server() -> Server:
             elif name == "cloak_info":
                 return _text(await tools.tool_info())
             elif name == "cloak_fetch":
-                result = json.loads(await tools.tool_fetch(**arguments))
-                if "error" in result:
+                raw = await tools.tool_fetch(**arguments)
+                result = json.loads(raw)
+                if isinstance(result, list):
+                    # Parallel fetch results — return text summaries + images for each
+                    text_parts = []
+                    images = []
+                    for i, item in enumerate(result):
+                        if "error" in item:
+                            text_parts.append(f"[{i+1}] Error: {item['error']}")
+                        else:
+                            text_parts.append(
+                                f"[{i+1}] URL: {item['url']}\nTitle: {item['title']}\n\n{item['text']}"
+                            )
+                            images.append(
+                                ImageContent(type="image", data=item["screenshot"], mimeType="image/png")
+                            )
+                    return [TextContent(type="text", text="\n\n".join(text_parts))] + images
+                elif "error" in result:
                     return _text(f"Error: {result['error']}")
-                return [
-                    TextContent(type="text", text=f"URL: {result['url']}\nTitle: {result['title']}\n\n{result['text']}"),
-                    ImageContent(type="image", data=result["screenshot"], mimeType="image/png"),
-                ]
+                else:
+                    return [
+                        TextContent(type="text", text=f"URL: {result['url']}\nTitle: {result['title']}\n\n{result['text']}"),
+                        ImageContent(type="image", data=result["screenshot"], mimeType="image/png"),
+                    ]
             else:
                 return _text(f"Unknown tool: {name}")
         except Exception as e:

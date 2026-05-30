@@ -12,21 +12,28 @@ logger = logging.getLogger(__name__)
 
 
 async def tool_fetch(
-    url: str,
+    url: str | None = None,
+    urls: list[str] | None = None,
     max_length: int = 50000,
 ) -> str:
-    """Fetch a web page and return its text content + screenshot.
+    """Fetch one or more web pages and return their text content + screenshots.
 
     Uses the shared browser instance (launch with cloak_launch first).
     If browser is not running, launches with all stealth defaults.
     Does NOT close the browser after fetch — call cloak_close when done.
 
+    Pass a single ``url`` for one page, or pass ``urls`` (list of strings)
+    to fetch multiple pages in parallel. When ``urls`` is provided, each
+    URL is fetched in its own temporary page via ``asyncio.gather``.
+
     Args:
-        url: The URL to fetch.
-        max_length: Max text length in characters (default 50000).
+        url: A single URL to fetch.
+        urls: A list of URLs to fetch in parallel.
+        max_length: Max text length in characters per page (default 50000).
 
     Returns:
-        JSON string with keys: text, screenshot (base64), url, title
+        JSON string. Single URL → dict with keys: text, screenshot (base64), url, title.
+        Multiple URLs → list of such dicts (order matches the input).
     """
     import json as _json
     mgr = get_manager()
@@ -41,8 +48,31 @@ async def tool_fetch(
                 viewport_height=4500,
             )
 
-        result = await mgr.fetch_url(url, max_length=max_length)
-        return _json.dumps(result, ensure_ascii=False)
+        # Determine the list of URLs to fetch
+        if urls is not None:
+            target_urls = urls
+        elif url is not None:
+            target_urls = [url]
+        else:
+            return _json.dumps({"error": "Provide 'url' (string) or 'urls' (list of strings)."})
+
+        if len(target_urls) == 1:
+            result = await mgr.fetch_url(target_urls[0], max_length=max_length)
+            return _json.dumps(result, ensure_ascii=False)
+
+        # Parallel fetch: each URL gets its own temporary page
+        results = await asyncio.gather(
+            *[mgr.fetch_url(u, max_length=max_length) for u in target_urls],
+            return_exceptions=True,
+        )
+        # Convert exceptions to error dicts so the output is always valid JSON
+        serialised = []
+        for r in results:
+            if isinstance(r, Exception):
+                serialised.append({"error": str(r)})
+            else:
+                serialised.append(r)
+        return _json.dumps(serialised, ensure_ascii=False)
     except Exception as e:
         logger.exception("tool_fetch error")
         return _json.dumps({"error": str(e)})

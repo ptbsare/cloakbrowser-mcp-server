@@ -320,87 +320,93 @@ class BrowserManager:
     ) -> dict:
         """One-shot fetch: navigate to URL, extract text + take screenshot.
 
+        Uses a dedicated temporary page so that multiple fetch_url calls
+        can run concurrently without blocking each other or interfering
+        with the main interactive page.
+
         Returns dict with:
             - text: clean visible text content
             - screenshot: base64-encoded PNG
             - url: final URL (after redirects)
             - title: page title
         """
-        page = self._page
-
-        # Navigate
-        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-
-        # Best-effort networkidle, fall back gracefully
+        page = await self._context.new_page()
         try:
-            await page.wait_for_load_state("networkidle", timeout=5000)
-        except Exception:
+            # Navigate
+            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+
+            # Best-effort networkidle, fall back gracefully
             try:
-                await page.wait_for_load_state("domcontentloaded", timeout=3000)
+                await page.wait_for_load_state("networkidle", timeout=5000)
+            except Exception:
+                try:
+                    await page.wait_for_load_state("domcontentloaded", timeout=3000)
+                except Exception:
+                    pass
+
+            # Wait for DOM ready + short JS hydration delay
+            try:
+                await page.wait_for_function(
+                    "() => document.readyState === 'complete'",
+                    timeout=5000,
+                )
+            except Exception:
+                pass
+            try:
+                await page.wait_for_timeout(500)
             except Exception:
                 pass
 
-        # Wait for DOM ready + short JS hydration delay
-        try:
-            await page.wait_for_function(
-                "() => document.readyState === 'complete'",
-                timeout=5000,
-            )
-        except Exception:
-            pass
-        try:
-            await page.wait_for_timeout(500)
-        except Exception:
-            pass
-
-        # Extract clean text
-        text = await page.evaluate(
-            """([maxLen]) => {
-                const root = document.body;
-                const walker = document.createTreeWalker(
-                    root,
-                    NodeFilter.SHOW_TEXT,
-                    {
-                        acceptNode: (node) => {
-                            const parent = node.parentElement;
-                            if (!parent) return NodeFilter.FILTER_REJECT;
-                            const tag = parent.tagName.toLowerCase();
-                            if (['style','script','noscript','template','head'].includes(tag))
-                                return NodeFilter.FILTER_REJECT;
-                            const cs = window.getComputedStyle(parent);
-                            if (cs.display === 'none' || cs.visibility === 'hidden')
-                                return NodeFilter.FILTER_REJECT;
-                            if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
-                            return NodeFilter.FILTER_ACCEPT;
+            # Extract clean text
+            text = await page.evaluate(
+                """([maxLen]) => {
+                    const root = document.body;
+                    const walker = document.createTreeWalker(
+                        root,
+                        NodeFilter.SHOW_TEXT,
+                        {
+                            acceptNode: (node) => {
+                                const parent = node.parentElement;
+                                if (!parent) return NodeFilter.FILTER_REJECT;
+                                const tag = parent.tagName.toLowerCase();
+                                if (['style','script','noscript','template','head'].includes(tag))
+                                    return NodeFilter.FILTER_REJECT;
+                                const cs = window.getComputedStyle(parent);
+                                if (cs.display === 'none' || cs.visibility === 'hidden')
+                                    return NodeFilter.FILTER_REJECT;
+                                if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+                                return NodeFilter.FILTER_ACCEPT;
+                            }
                         }
+                    );
+                    const parts = [];
+                    while (walker.nextNode()) {
+                        parts.push(walker.currentNode.textContent.trim());
                     }
-                );
-                const parts = [];
-                while (walker.nextNode()) {
-                    parts.push(walker.currentNode.textContent.trim());
-                }
-                var nl = String.fromCharCode(10);
-                var t = parts.join(nl);
-                var pat = new RegExp(nl + '{3,}', 'g');
-                t = t.replace(pat, nl + nl);
-                return t.substring(0, maxLen);
-            }""",
-            [max_length],
-        )
+                    var nl = String.fromCharCode(10);
+                    var t = parts.join(nl);
+                    var pat = new RegExp(nl + '{3,}', 'g');
+                    t = t.replace(pat, nl + nl);
+                    return t.substring(0, maxLen);
+                }""",
+                [max_length],
+            )
 
-        # Take screenshot
-        screenshot_bytes = await page.screenshot(type="png")
-        screenshot_b64 = base64.b64encode(screenshot_bytes).decode()
+            # Take screenshot
+            screenshot_bytes = await page.screenshot(type="png")
+            screenshot_b64 = base64.b64encode(screenshot_bytes).decode()
 
-        title = await page.title()
-        final_url = page.url
+            title = await page.title()
+            final_url = page.url
 
-        return {
-            "text": text,
-            "screenshot": screenshot_b64,
-            "url": final_url,
-            "title": title,
-        }
+            return {
+                "text": text,
+                "screenshot": screenshot_b64,
+                "url": final_url,
+                "title": title,
+            }
+        finally:
+            await page.close()
 
     @property
     def is_running(self) -> bool:
